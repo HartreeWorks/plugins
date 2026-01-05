@@ -1,0 +1,13 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "hartreeworks-plugins",
+  "version": "1.0.0",
+  "plugins": [
+    {
+      "name": "project-management",
+      "description": "Manage non-coding projects with scaffolding, Google Docs integration, and memory tracking",
+      "source": "./plugin--project-management",
+      "category": "productivity"
+    }
+  ]
+}
