@@ -14,7 +14,7 @@ Must be in a project folder (contains `project.yaml`), OR provide project folder
 
 ### Step 1: Identify project
 If in a project folder, use current project.
-If argument provided (`/archive-project 2025-09-forethought-research`), use that.
+If argument provided (`/archive-project forethought-research`), use that.
 Otherwise, ask: "Which project do you want to archive? (folder name)"
 
 ### Step 2: Verify project exists

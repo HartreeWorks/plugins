@@ -8,7 +8,7 @@ Create a new project folder with all necessary files for managing non-coding wor
 
 ## What this skill does
 
-1. Creates a project folder at `~/Documents/Projects/YYYY-MM-{slug}/`
+1. Creates a project folder at `~/Documents/Projects/{slug}/`
 2. Sets up all required files:
    - `project.yaml` - Project metadata
    - `CLAUDE.md` - About, conventions, instructions, and behaviour rules
@@ -27,8 +27,7 @@ Ask the user:
 - "What type of project? (client / personal / planning)"
 
 ### Step 2: Generate folder name
-Create folder name as `YYYY-MM-{slug}` where:
-- YYYY-MM is the current year and month
+Create folder name as `{slug}` where:
 - slug is the project name converted to lowercase, spaces replaced with hyphens, special characters removed
 
 ### Step 3: Create folder structure
@@ -54,9 +53,9 @@ Ask the user:
 **project.yaml:**
 ```yaml
 name: "{project name}"
-folder: "{YYYY-MM-slug}"
+folder: "{slug}"
 type: {client|personal|planning}
-created: {YYYY-MM-DD}
+start_date: {YYYY-MM-DD}
 skill_version: "1.0"
 template: default
 ```
@@ -183,7 +182,7 @@ node_modules/
 ### Step 6: Update central index
 Add entry to `~/Documents/Projects/projects.yaml`:
 ```yaml
-- folder: {YYYY-MM-slug}
+- folder: {slug}
   name: "{project name}"
   type: {type}
   status: active
@@ -213,10 +212,10 @@ If yes, explain they can use `/add-google-doc` or paste URLs.
 Display:
 ```
 Project created: {project name}
-Location: ~/Documents/Projects/{YYYY-MM-slug}/
+Location: ~/Documents/Projects/{slug}/
 
 Next steps:
-- cd ~/Documents/Projects/{YYYY-MM-slug}
+- cd ~/Documents/Projects/{slug}
 - Use /add-google-doc to add Google Docs
 - Place local reference files in context/
 - Start a conversation and I'll load the project context
