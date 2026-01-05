@@ -1,6 +1,6 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "HartreeWorks-plugins",
+  "name": "hartreeworks-plugins",
   "version": "1.0.0",
   "owner": {
     "name": "Peter Hartree",
