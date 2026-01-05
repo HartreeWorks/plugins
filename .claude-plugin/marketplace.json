@@ -2,6 +2,10 @@
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "hartreeworks-plugins",
   "version": "1.0.0",
+  "owner": {
+    "name": "Peter Hartree",
+    "email": "pete.hartree@gmail.com"
+  },
   "plugins": [
     {
       "name": "project-management",
