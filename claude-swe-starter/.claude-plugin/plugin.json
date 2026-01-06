@@ -1,0 +1,12 @@
+{
+  "name": "claude-swe-starter",
+  "version": "1.0.0",
+  "description": "Starter kit for software engineering projects with Next.js configuration, stable port detection, and development best practices",
+  "author": {
+    "name": "Pete Hartree"
+  },
+  "license": "MIT",
+  "keywords": ["nextjs", "swe", "starter", "setup", "ports", "development"],
+  "commands": ["./commands/"],
+  "skills": ["./skills/"]
+}
