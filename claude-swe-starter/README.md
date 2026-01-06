@@ -7,6 +7,7 @@ A Claude Code plugin that provides sensible defaults for software engineering pr
 - **Stable port detection**: Automatically assigns an available port during project setup, persisted in `.env.local` so it stays consistent
 - **Next.js best practices**: Project structure, environment variable patterns, and configuration guidance
 - **Setup command**: Interactive `/claude-swe-starter:setup-nextjs` command for new projects
+- **Shell alias**: Script to add `cc` as a shortcut for `claude`
 
 ## Installation
 
@@ -40,6 +41,16 @@ Instead of hardcoding port 3000 (which is often in use), this plugin instructs C
 3. Leave the dev script unchanged (Next.js reads PORT automatically)
 
 This gives you stable, bookmarkable URLs without port conflicts.
+
+### Shell alias
+
+Add `cc` as a shortcut for `claude`:
+
+```bash
+./scripts/setup-alias.sh
+```
+
+This adds `alias cc='claude'` to your `.zshrc` or `.bashrc`.
 
 ## Licence
 
