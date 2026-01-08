@@ -33,7 +33,7 @@ interface Change {
 interface Suggestion {
   id: string;
   line: number;
-  type: "style" | "clarity";
+  type: "style" | "clarity" | "spelling";
   text: string;
   suggested: string | null;
   context?: string;
@@ -43,6 +43,7 @@ interface ProofreadResult {
   file: string;
   correctedFile: string;
   level: number;
+  language: "british" | "american";
   autoApplied: {
     count: number;
     changes: Change[];
@@ -85,7 +86,12 @@ function chunkText(text: string, maxTokens: number = 6000): string[] {
   return chunks;
 }
 
-function buildPrompt(text: string, level: number, startLine: number): string {
+function buildPrompt(text: string, level: number, startLine: number, language: "british" | "american"): string {
+  const languageLabel = language === "british" ? "British English" : "American English";
+  const spellingExamples = language === "british"
+    ? "(e.g., colour, organisation, analyse, centre, defence)"
+    : "(e.g., color, organization, analyze, center, defense)";
+
   const levelInstructions = {
     1: `Focus ONLY on:
 - Spelling errors
@@ -113,7 +119,7 @@ For style/clarity, only flag the most important issues like:
 Be thorough but preserve the author's voice.`,
   };
 
-  return `You are a professional proofreader. Review the following text using British English conventions.
+  return `You are a professional proofreader. Review the following text using ${languageLabel} conventions ${spellingExamples}.
 
 ${levelInstructions[level as 1 | 2 | 3]}
 
@@ -124,7 +130,7 @@ IMPORTANT RULES:
 4. Don't over-edit - only flag genuine issues
 5. SKIP ANY TEXT containing: backslashes, curly braces, superscripts/subscripts, or anything that looks like LaTeX/math notation
 6. DO NOT try to "fix" formatting of numbers, units, or mathematical expressions
-7. DO NOT change British to American English or vice versa
+7. Use ${languageLabel} spelling conventions consistently
 8. Focus on ACTUAL spelling/grammar errors in plain prose only
 
 Return a JSON array with this structure (no markdown, just raw JSON):
@@ -174,9 +180,10 @@ function extractJson(response: string): string {
 async function proofreadChunk(
   text: string,
   level: number,
-  startLine: number
+  startLine: number,
+  language: "british" | "american"
 ): Promise<{ autoCorrections: Change[]; suggestions: Suggestion[] }> {
-  const prompt = buildPrompt(text, level, startLine);
+  const prompt = buildPrompt(text, level, startLine, language);
 
   try {
     const { text: response } = await generateText({
@@ -269,7 +276,8 @@ function insertSuggestionComments(text: string, suggestions: Suggestion[]): stri
 
 async function proofread(
   filePath: string,
-  level: number
+  level: number,
+  language: "british" | "american"
 ): Promise<ProofreadResult> {
   const text = readFileSync(filePath, "utf-8");
   const fileName = basename(filePath);
@@ -290,7 +298,8 @@ async function proofread(
     const { autoCorrections, suggestions } = await proofreadChunk(
       chunks[i],
       level,
-      currentLine
+      currentLine,
+      language
     );
 
     allAutoCorrections.push(...autoCorrections);
@@ -319,6 +328,7 @@ async function proofread(
     file: fileName,
     correctedFile: correctedFileName,
     level,
+    language,
     autoApplied: {
       count: allAutoCorrections.length,
       changes: allAutoCorrections,
@@ -328,14 +338,16 @@ async function proofread(
 }
 
 // Deterministic spell-check using aspell
-async function spellcheck(filePath: string): Promise<ProofreadResult> {
+async function spellcheck(filePath: string, language: "british" | "american"): Promise<ProofreadResult> {
   const text = readFileSync(filePath, "utf-8");
   const fileName = basename(filePath);
   const fileDir = dirname(filePath);
   const correctedFileName = fileName.replace(/\.md$/, ".proofread.md");
   const correctedFilePath = join(fileDir, correctedFileName);
 
-  console.error("Running aspell spell-check (British English)...");
+  const aspellLang = language === "british" ? "en_GB" : "en_US";
+  const languageLabel = language === "british" ? "British English" : "American English";
+  console.error(`Running aspell spell-check (${languageLabel})...`);
 
   const lines = text.split("\n");
   const allAutoCorrections: Change[] = [];
@@ -369,7 +381,7 @@ async function spellcheck(filePath: string): Promise<ProofreadResult> {
     try {
       // Run aspell on the line
       const result = execSync(
-        `echo "${cleanLine.replace(/"/g, '\\"')}" | aspell -a --lang=en_GB 2>/dev/null`,
+        `echo "${cleanLine.replace(/"/g, '\\"')}" | aspell -a --lang=${aspellLang} 2>/dev/null`,
         { encoding: "utf-8", maxBuffer: 1024 * 1024 }
       );
 
@@ -450,6 +462,7 @@ async function spellcheck(filePath: string): Promise<ProofreadResult> {
     file: fileName,
     correctedFile: correctedFileName,
     level: 1, // Spellcheck is always level 1 (mechanical only)
+    language,
     autoApplied: {
       count: 0, // No auto-corrections in spellcheck mode
       changes: [],
@@ -463,7 +476,7 @@ async function main() {
   const args = process.argv.slice(2);
 
   if (args.length === 0) {
-    console.error("Usage: npx tsx proofread.ts <file.md> [--engine llm|spellcheck] [--level 1|2|3]");
+    console.error("Usage: npx tsx proofread.ts <file.md> [--engine llm|spellcheck] [--level 1|2|3] [--language british|american]");
     console.error("");
     console.error("Engines:");
     console.error("  llm        - Gemini-based proofreading (default)");
@@ -473,12 +486,17 @@ async function main() {
     console.error("  1 - Mechanical only (spelling, punctuation, grammar)");
     console.error("  2 - Light style pass (+ top 5-10 style suggestions)");
     console.error("  3 - Comprehensive review (all suggestions)");
+    console.error("");
+    console.error("Language:");
+    console.error("  british  - British English conventions (colour, organisation)");
+    console.error("  american - American English conventions (color, organization)");
     process.exit(1);
   }
 
   const filePath = args[0];
   let level = 2; // Default to level 2
   let engine = "llm"; // Default to LLM
+  let language: "british" | "american" = "british"; // Default to British English
 
   const engineIndex = args.indexOf("--engine");
   if (engineIndex !== -1 && args[engineIndex + 1]) {
@@ -498,13 +516,23 @@ async function main() {
     }
   }
 
+  const languageIndex = args.indexOf("--language");
+  if (languageIndex !== -1 && args[languageIndex + 1]) {
+    const langArg = args[languageIndex + 1];
+    if (!["british", "american"].includes(langArg)) {
+      console.error("Error: Language must be 'british' or 'american'");
+      process.exit(1);
+    }
+    language = langArg as "british" | "american";
+  }
+
   try {
     let result: ProofreadResult;
 
     if (engine === "spellcheck") {
-      result = await spellcheck(filePath);
+      result = await spellcheck(filePath, language);
     } else {
-      result = await proofread(filePath, level);
+      result = await proofread(filePath, level, language);
     }
 
     // Output JSON to stdout for Claude to parse
