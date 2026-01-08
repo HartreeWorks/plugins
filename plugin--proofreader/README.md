@@ -1,13 +1,13 @@
 # Proofreader
 
-LLM-powered proofreading for markdown documents using British English conventions.
+LLM-powered proofreading for markdown documents.
 
 ## Features
 
 - **Two engines**: Fast aspell spell-check or thorough LLM analysis via Gemini
 - **Background execution**: Long documents can be proofread in the background while you continue working
 - **Interactive review**: Auto-applies safe corrections, suggests style/clarity improvements for your approval
-- **British English**: Uses British spelling and conventions
+- **Language choice**: Supports British English or American English — saves your preference per project
 
 ## Installation
 
@@ -39,7 +39,18 @@ cp .env.example .env
 
 ## Usage
 
-Say "proofread my document" and Claude will ask which engine and level you want.
+Say "proofread my document" and Claude will guide you through the process.
+
+### Language preference
+
+On first use, you'll be asked whether you prefer British or American English:
+
+- **British English**: colour, organisation, analyse
+- **American English**: color, organization, analyze
+
+You can save this preference permanently for the project, or choose to be asked each time.
+
+Preferences are stored in `.claude/proofreader.local.md`. Delete this file to reset.
 
 ### Spellcheck engine (~2 seconds)
 
@@ -74,6 +85,7 @@ Task tool:
   prompt: |
     file_path: /path/to/document.md
     level: 2
+    language: british
   subagent_type: "proofreader:proofreader"
   run_in_background: true
 ```
@@ -82,6 +94,18 @@ Task tool:
 
 - **Skill**: `proofread` — Orchestrates the workflow and handles interactive review
 - **Agent**: `proofreader` — Runs the LLM analysis, can execute in background
+
+## Settings
+
+Preferences are stored in `.claude/proofreader.local.md`:
+
+```markdown
+---
+language: british
+---
+
+# Proofreader settings
+```
 
 ## Requirements
 
